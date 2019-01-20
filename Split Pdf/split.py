@@ -1,78 +1,74 @@
 #! python3
-# splitPdf.py - big pdf -> some pages of that pdf
-# inputs: pdf file location, new name, new destination
-# outputs: new pdf with new name in new destination
+# split.py - big pdf to some pages of that pdf
+# Press the windows button + r
+# type: split [student name] [pdf name] [page start] [number of pages]
+# Example: split Alex Spectrum Reading G1-1 4 2
 
-#  --------------------------- Imports --------------------------- 
+# The program will find the pdf and save the number of pages you want to
+# C:\Users\User\Desktop\English Steward\Students\Student\Month\Day
+
+
+# --------------------------- Imports -----------------------------------------
 import PyPDF2, os, sys, pprint, getpass, datetime
 
 
-# --------------------------- Variables ------------------------------- 
-date = datetime.datetime.today()
-month = date.strftime("%B")
-day = date.strftime("%d")
-path = 'C:\\Users\\%s\\Desktop\\English Steward' % getpass.getuser()
+# --------------------------- Variables ---------------------------------------
+date      = datetime.datetime.today()
+month     = date.strftime("%B")
+day       = date.strftime("%d")
+path      = 'C:\\Users\\%s\\Desktop\\English Steward' % getpass.getuser()
 materials = path + '\\Materials'
-'''
-for i in range(len(sys.argv)):
-    print('sys.argv[%d]' % i + ' = ' + sys.argv[i])
-'''
-start = 2
-length = len(sys.argv) - 4
-end = start + length
+start     = 2
+length    = len(sys.argv) - 4
+end       = start + length
+name      = sys.argv[1]
+pdf       = ' '.join(sys.argv[start:end]) + '.pdf'
+dest      = path + '\\Students\\' + name + '\\' + month + '\\' + day
 
-#----------------------------- Functions ------------------------------
+# ----------------------------- Functions -------------------------------------
 def search(pdf):
     for folderName, subfolders, filenames in os.walk(materials):
         for filename in filenames:
             if filename == pdf:
                 return os.path.join(folderName, filename)
-            
 
-# ------------------------------- Main --------------------------------
 
-# Student name
-name = sys.argv[1]
-
-# Pdf file
-pdf = ' '.join(sys.argv[start:end]) + '.pdf'
+# ------------------------------- Main ----------------------------------------
 print('Searching for: ' + pdf + '...')
-location = search(pdf) # returns abs path of the file
+# function returns abs path of the file
+location = search(pdf)
+# if the file is found
 if location:
     print('Found!')
-    # Make directory to save the split pdf
-    dest = path + '\\Students\\' + name + '\\' + month + '\\' + day
+    # if the dest folder doesn't exist
     if os.path.exists(dest) == False:
+        # Make the directory
         os.makedirs(dest, exist_ok=True)
+    # Change the current working directory to the destination folder
     os.chdir(dest)
-    print(os.getcwd())
-    
-    # How many?
+    # Where to start split
     pageNum = int((sys.argv[len(sys.argv)-2]))
+    # Where to end split
     numOfPages = int(sys.argv[len(sys.argv)-1])
-    
-    # open file in read binary mode
+    # open the pdf file in read binary mode
     pdf = open(location, 'rb')
-
-    # reader object
+    # create reader object
     reader = PyPDF2.PdfFileReader(pdf)
-
-    # writer object
+    # create writer object
     writer = PyPDF2.PdfFileWriter()
-
+    # Make new pdf out of old pdf
     for i in range(numOfPages):
         # read page
         page = reader.getPage(pageNum + i)
         # write page
         writer.addPage(page)
-
-    # output
+    # open new pdf with new name in write binary mode
     outputFile = open('%s %s Class Material.pdf' % (month, day), 'wb')
     writer.write(outputFile)
-
-    # close files
+    # always close files
     outputFile.close()
     pdf.close()
+# otherwise end the program
 else:
     print('File ' + pdf + ' not found in')
     print(materials)
